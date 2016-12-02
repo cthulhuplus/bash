@@ -1,0 +1,95 @@
+#!/bin/bash
+#Developed by Bill Brooks
+#Apache Analyzer
+
+#Apache log format - 24/Nov/2014
+
+### Base Commands
+### find /usr/local/apache/domlogs/*/ -type f |egrep -v 'ftp_log.|bytes_log' |xargs cat |grep `date +"%d/%b/%Y"`
+### lynx localhost:80/whm-server-status -dump -width 500
+### for i in $(ls /var/cpanel/users |grep -v system); do grep `date +"%d/%b/%Y"` /usr/local/apache/domlogs/$i/*; done |awk '{print$1}' |sort |awk -F: '{print$1,"- "$2}'|uniq -c |sort -n
+
+#function domsize {
+#ls -laSh /usr/local/apache/domlogs/ |egrep -v 'ftp_log|bytes_log' |head | awk '{print$5,$9}'
+#}
+
+#function iplist {
+#find /usr/local/apache/domlogs/*/ -type f |egrep -v 'ftp_log.|bytes_log' |xargs cat |grep `date +"%d/%b/%Y"` |awk '{print$1}'
+
+###
+ rawdomlogs() {
+grep `date +"%d/%b/%Y"` /usr/local/apache/domlogs/*/*
+}
+
+###sh httpanal |awk '{print$1,$2}' |awk -F: '{print$1,$2}' |awk -F/ '{print$7}' |awk -F ' -' '{print$1}' |sort |uniq -c |sort -n
+
+ipsort() {
+grep `date +"%d/%b/%Y"` /usr/local/apache/domlogs/*/* |awk '{print$1,$2}' |awk -F: '{print$1,$2}' |awk -F/ '{print$7}' |awk -F ' -' '{print$1}' |sort |uniq -c |sort -n
+}
+
+filesort() {
+grep `date +"%d/%b/%Y"` /usr/local/apache/domlogs/*/* |awk '{print$1,$7}' |awk -F: '{print$1,$2}' |awk '{print$1,$3}' |sort |uniq -c |sort -n
+}
+
+referrer() { 
+grep `date +"%d/%b/%Y"` /usr/local/apache/domlogs/*/* |awk '{print$1,$11}' |sed 's/:/ /' |awk '{print$1,$3}' |sort |uniq -c |sort -n
+}
+
+###l = live lynx localhost:80/whm-server-status -dump -width 500
+lraw() {
+lynx localhost:80/whm-server-status -dump -width 500
+}
+
+lip() {
+lynx localhost:80/whm-server-status -dump -width 500 |egrep -v "`hostname`:443 OPTIONS|`hostname`:80 OPTIONS" |awk '{print$11}' |egrep -v 'Client|current|this| ' |sed -e 's/^\s*//' -e '/^$/d' |sort |uniq -c |sort -n
+}
+
+ldom() {
+lynx localhost:80/whm-server-status -dump -width 500 |egrep -v "`hostname`:443 OPTIONS|`hostname`:80 OPTIONS" |awk '{print$12,$14}' |egrep -v 'VHost|process|slot' |sed -e 's/^\s*//' -e '/^$/d' |sed 's/ //' |sort |uniq -c |sort -n
+}
+
+helptxt()
+{
+  tput bold
+  echo "Apache Check will do stuff"
+  tput sgr0
+  echo "Useage:  sh ApacheCheck [flags] account"
+  echo " "
+  echo "Valid Flags; -r" ###Needs to be kept updated
+  echo "  -r Raw domlogs for todays date"
+  echo "  -i Sorted by IP hits per domain for todays date"
+  echo "  -f Sorted by file accessed"
+  echo "  -d Sorted by domain referrer"
+  echo "  -lr Raw Apache Status"
+  echo "  -li Apache Status sorted IP hits"
+  echo "  -ld Apache Status sort by domain hits"
+#  echo " "
+#  echo "  -a or --all for all valid CMS software for single account"
+#  echo "  -e or --exhaustive for all valid CMS software for all accounts"
+#  echo "  -h or --help for this help menu"
+}
+
+#No Input
+if [ $# -eq 0 ]
+  then
+  helptxt
+fi
+
+#Flags
+case "$1" in
+  -r) rawdomlogs
+    ;;
+  -i) ipsort
+    ;;
+  -f) filesort
+    ;;
+  -d) referrer
+    ;;
+  -lr) lraw
+    ;;
+  -li) lip
+    ;;
+  -ld) ldom
+ #    ;;
+#  --joomla) joomla
+esac
