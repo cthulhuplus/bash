@@ -1,0 +1,127 @@
+#!/bin/bash
+#Developed by Bill Brooks
+#Contributor:  Jonathan Bertrand
+#This script is designed to check MySQL databases.
+
+#Things to impliment#
+#Show all databases
+#Show all cPanel databases
+#Show databases that have InnoDB tables, all databases, per specific cPanel account, per database
+#Show databases using ONLY MyISAM
+
+#Base external mysql command:
+#mysql -e "show databases"
+
+account=$2  #or database
+
+#Functions #Functions will need to correspond to a Flag
+
+function helptext {
+  tput bold
+  echo "enginecheck will check databases for table type and more"
+  tput sgr0
+  echo "Useage:  sh enginecheck [flags] account [or database]"
+  echo " "
+  echo "Valid Flags: -i, -a, -c, -ita, -icp, -icpa, -itcp, -itcpa, --all, --iall, -h"
+  echo "  -i Shows tables for an InnoDB database"
+  echo "  -a Returns databases for a specific cPanel account"
+  echo "  -c Returns all databases from all valid cPanel users"
+  echo "  -ita Returns all tables and their databases with InnoDB tables"
+  echo "  -icp Returns InnoDB databases for a specific cPanel user"
+  echo "  -icpa Returns all cPanel user databases with InnoDB tables in it"
+  echo "  -itcp Returns a specified cPanel accounts databases and their InnoDB tables"
+  echo "  -itcpa Returns all cPanel databases and their InnoDB tables"
+  echo "  --all Returns all databases"
+  echo "  --iall Returns all databases with InnoDB tables in it"
+  echo "  -h Returns the help documentation, this page"
+}
+
+function alldb {
+mysql -e "show databases" |awk '{print$1}' |tail -n +2
+}
+
+function allcp {
+mysql -e "show databases" |awk '{print$1}' |grep "`ls /var/cpanel/users`"
+}
+
+function onecp {
+mysql -e "show databases" |awk '{print$1}' |grep "`ls /var/cpanel/users`" |grep $account
+}
+
+###This is where it's going to get funky
+#Core InnoDB command
+#mysql -e 'show table status from DATABASE' |grep -i innodb
+#Jonathan Bertrands commands:
+#Creates dump commands for databases with InnoDB tables
+#mysql -e 'SELECT table_schema, table_name FROM INFORMATION_SCHEMA.TABLES WHERE engine = "innodb";'|awk '{print "mysqldump --databases "$1" > /home/servint/dumps/"$1".sql"}' |sort |uniq
+#Displays InnoDB tables and their associated Database
+#mysql -e 'SELECT table_schema, table_name FROM INFORMATION_SCHEMA.TABLES WHERE engine = "innodb";' |awk '{print$1,$2}'
+#Show databases that have InnoDB tables, all databases, per specific cPanel account, per database
+#Show databases using ONLY MyISAM
+
+function indball {
+mysql -e 'SELECT table_schema, table_name FROM INFORMATION_SCHEMA.TABLES WHERE engine = "innodb";' |awk '{print$1}' |sort |uniq |sort
+}
+
+function indbcpall {
+mysql -e 'SELECT table_schema, table_name FROM INFORMATION_SCHEMA.TABLES WHERE engine = "innodb";' |awk '{print$1}' |sort |uniq |sort |grep "`ls /var/cpanel/users`"
+}
+
+function indbcpone {
+mysql -e 'SELECT table_schema, table_name FROM INFORMATION_SCHEMA.TABLES WHERE engine = "innodb";' |awk '{print$1}' |sort |uniq |sort |grep "`ls /var/cpanel/users`" |grep $account
+}
+
+function idbtablesall {
+mysql -e 'SELECT table_schema, table_name FROM INFORMATION_SCHEMA.TABLES WHERE engine = "innodb";' |awk '{print$1,$2}'
+}
+
+function idbtablecpall {
+mysql -e 'SELECT table_schema, table_name FROM INFORMATION_SCHEMA.TABLES WHERE engine = "innodb";' |awk '{print$1,$2}' |grep "`ls /var/cpanel/users`"
+}
+
+function idbtablecpone {
+mysql -e 'SELECT table_schema, table_name FROM INFORMATION_SCHEMA.TABLES WHERE engine = "innodb";' |awk '{print$1,$2}' |grep "`ls /var/cpanel/users`" |grep $account
+}
+
+function idbcheck {	
+#mysql -e "show table status from $account" |grep -i innodb |awk '{print$1}'
+if [ "`mysql -e "show table status from $account" |grep -i innodb`" = "" ];
+then
+echo "There are no InnoDB tables in the $account database."
+else 
+mysql -e "show table status from $account" |grep -i innodb |awk '{print$1}'
+fi
+}
+
+#No Input
+if [ $# -eq 0 ]
+  then
+  helptext
+fi
+
+#Flags #Current Flags are from the cmscheck script
+case "$1" in
+  -i) idbcheck
+    ;;
+  -itcp) idbtablecpone
+    ;;
+  -itcpa) idbtablecpall
+    ;;
+  -ita) idbtablesall
+    ;;
+  -icp) indbcpone
+    ;;
+  -icpa) indbcpall
+    ;; 
+  --all) alldb
+    ;;
+  --iall) indball
+    ;;
+  -h) helptext
+    ;;
+  -c) allcp
+    ;;
+  -a) onecp
+#  -w) wordpress
+#    ;;
+esac

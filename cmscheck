@@ -1,0 +1,207 @@
+#!/bin/bash
+#Developed by Bill Brooks
+#Contributions by Colin Roche-Dutch, Dominik Poetek, Connar Pierce
+#This script is designed to search for out of date Wordpress, Joomla, and Drupal installation
+
+### Features to impliment:
+### Account verification
+### Error handling when no account is provided
+### Log locations and versions
+### Retrieve Wordpress version
+
+###Magento
+#function currentmage #Magento
+#{
+#echo "Magento locations and version: (`curl -s https://www.magentocommerce.com/download |grep 'Download Magento Community Edition' |awk '{print$5}' |awk -F! '{print$1}'`)"
+#}
+#
+#function magento
+#find /home/$account/public_html/ -type d -name app -print -exec grep -Ri -A6 'public static function getVersionInfo' {} \; |egrep 'major|minor|revision|patch' |tr '\n' ' ' |awk '{print$1,$4,$8,$12,$16}' |sed 's/-//' |sed 's/,//' |sed "s/'//g" |sed 's/,//g' |awk '{print$1" "$2"."$3"."$4}' |awk -F 'app/Mage.php' '{print$1,$2}'
+
+
+account=$2
+
+#Current version functions
+
+currentmage() {
+echo "Magento locations and version: (Current Stable Version - `curl -s https://www.magentocommerce.com/download |grep 'Download Magento Community Edition' |awk '{print$5}' |awk -F! '{print$1}'`)"
+}
+
+currentw()
+{
+#curl -s https://wordpress.org/download/ |grep 'WordPress (Version' |awk -F 'Version ' '{print$2}' |awk -F ') ' '{print$1}'
+echo "Wordpress locations and version: (Current Stable Version - `curl -s https://wordpress.org/download/ |grep 'WordPress (Version' |awk -F 'Version ' '{print$2}' |awk -F ') ' '{print$1}'`)"
+}
+
+currentj()
+{
+echo "Joomla locations and versions: (Current Stable Version - `curl -s https://docs.joomla.org/ |grep 'is the latest version!' |awk -F 'Joomla! ' '{print$2}' |awk '{print$1}'`)"
+}
+
+currentd()
+{
+echo "Drupal locations and versions: (Current Stable Version - `curl -s https://www.drupal.org/download |grep 'Download Drupal' |grep -v 'core files' |awk -F 'Drupal ' '{print$2}' |awk -F '</' '{print$1}'`)"
+}
+
+#Functions
+magento() {
+  tput bold
+  currentmage
+  tput sgr0
+find /home/$account/public_html/ -type d -name app -print -exec grep -Ri -A6 'public static function getVersionInfo' {} \; |egrep 'major|minor|revision|patch' |tr '\n' ' ' |awk -F\' '{print$1,$4,$8,$12,$16}' |awk '{print$1" "$2"."$3"."$4}' |awk -F 'app/Mage.php-' '{print$1,$2}'
+}
+
+wordpress()
+{
+  tput bold
+#  echo "Wordpress locations and version: (`curl -s https://wordpress.org/download/ |grep 'WordPress (Version' |awk -F 'Version ' '{print$2}' |awk -F ') ' '{print$1}'`)"
+  currentw
+  tput sgr0
+  find /home/$account/public_html/ -type d -name wp-includes -print -exec grep -Ri '$wp_version =' {} \; |grep version.php |awk -F 'version.php:$wp_version = ' '{print$1.$2}' |sed 's/wp-includes\/version.php:$wp_version\ =//' |sed 's/;//' |awk '{printf "%s\t%s\n", $1,$2}'
+}
+
+joomla()
+{
+  tput bold
+  currentj
+  tput sgr0
+  find /home/$account/public_html -type d -name version -exec grep -Ri '$RELEASE =' {} \; | grep 'cms/version' |awk -F libraries/cms/version/version.php: '{print$1,$2}' |sed 's/public $RELEASE = //' |sed 's/;//' |awk '{printf "%s\t%s\n", $1,$2}'
+}
+
+drupal()
+{
+  tput bold
+  currentd
+  tput sgr0
+  find /home/$account/public_html/ -type d -name includes -print -exec grep -Ri 'VERSION' {} \; |grep bootstrap.inc |grep "('VERSION'." |awk -F includes/bootstrap.inc:define '{print$1,$2}' |sed "s/('VERSION', //" |sed "s/);//" |awk '{printf "%s\t%s\n", $1,$2}'
+}
+
+all4m() {
+#Mageto
+  tput bold
+  currentmage
+  tput sgr0
+  for i in $(grep USER /var/cpanel/users/* |awk -F= '{print$2}' |grep -v system); do find /home/$i/public_html/ -type d -name app -print -exec grep -Ri -A6 'public static function getVersionInfo' {} \; |egrep 'major|minor|revision|patch' |tr '\n' ' ' |awk -F\' '{print$1,$4,$8,$12,$16}' |awk '{print$1" "$2"."$3"."$4}' |awk -F 'app/Mage.php-' '{printf "%s\t%s\n", $1,$2}';done
+}
+
+all4wp() {
+  #Wordpress
+  tput bold
+  currentw
+  tput sgr0
+  for i in $(grep USER /var/cpanel/users/* |awk -F= '{print$2}' |grep -v system); do find /home/$i/public_html/ -type d -name wp-includes -print -exec grep -Ri '$wp_version =' {} \; |grep version.php |awk -F 'version.php:$wp_version = ' '{print$1.$2}' |sed 's/wp-includes\/version.php:$wp_version\ =//' |sed 's/;//' |awk '{printf "%s\t%s\n", $1,$2}';done
+}
+
+all4j() {
+  #Joomla
+  tput bold
+  currentj
+  tput sgr0
+  for i in $(grep USER /var/cpanel/users/* |awk -F= '{print$2}' |grep -v system); do find /home/$i/public_html -type d -name version -exec grep -Ri '$RELEASE =' {} \; | grep 'cms/version' |awk -F libraries/cms/version/version.php: '{print$1,$2}' |sed 's/public $RELEASE = //' |sed 's/;//' |awk '{printf "%s\t%s\n", $1,$2}';done
+}
+
+all4d() {
+  #Drupal
+  tput bold
+  currentd
+  tput sgr0
+  for i in $(grep USER /var/cpanel/users/* |awk -F= '{print$2}' |grep -v system); do find /home/$i/public_html/ -type d -name includes -print -exec grep -Ri 'VERSION' {} \; |grep bootstrap.inc |grep "('VERSION'." |awk -F includes/bootstrap.inc:define '{print$1,$2}' |sed "s/('VERSION', //" |sed "s/);//" |awk '{printf "%s\t%s\n", $1,$2}';done
+}
+
+all() {
+wordpress
+joomla
+drupal
+magento
+}
+
+exhaustive() {
+  #Wordpress
+  tput bold
+  currentw
+  tput sgr0
+  for i in $(grep USER /var/cpanel/users/* |awk -F= '{print$2}' |grep -v system); do find /home/$i/public_html/ -type d -name wp-includes -print -exec grep -Ri '$wp_version =' {} \; |grep version.php |awk -F 'version.php:$wp_version = ' '{print$1.$2}' |sed 's/wp-includes\/version.php:$wp_version\ =//' |sed 's/;//' |awk '{printf "%s\t%s\n", $1,$2}';done
+
+  #Joomla
+  tput bold
+  currentj
+  tput sgr0
+  for i in $(grep USER /var/cpanel/users/* |awk -F= '{print$2}' |grep -v system); do find /home/$i/public_html -type d -name version -exec grep -Ri '$RELEASE =' {} \; | grep 'cms/version' |awk -F libraries/cms/version/version.php: '{print$1,$2}' |sed 's/public $RELEASE = //' |sed 's/;//' |awk '{printf "%s\t%s\n", $1,$2}';done
+
+  #Drupal
+  tput bold
+  currentd
+  tput sgr0
+  for i in $(grep USER /var/cpanel/users/* |awk -F= '{print$2}' |grep -v system); do find /home/$i/public_html/ -type d -name includes -print -exec grep -Ri 'VERSION' {} \; |grep bootstrap.inc |grep "('VERSION'." |awk -F includes/bootstrap.inc:define '{print$1,$2}' |sed "s/('VERSION', //" |sed "s/);//" |awk '{printf "%s\t%s\n", $1,$2}';done
+
+  #Magento
+  tput bold
+  currentmage
+  tput sgr0
+  for i in $(grep USER /var/cpanel/users/* |awk -F= '{print$2}' |grep -v system); do find /home/$i/public_html/ -type d -name app -print -exec grep -Ri -A6 'public static function getVersionInfo' {} \; |egrep 'major|minor|revision|patch' |tr '\n' ' ' |awk -F\' '{print$1,$4,$8,$12,$16}' |awk '{print$1" "$2"."$3"."$4}' |awk -F 'app/Mage.php-' '{printf "%s\t%s\n", $1,$2}';done
+}
+
+helptxt()
+{
+  tput bold
+  echo "cmscheck will scan a server for CMS installation paths and their versions"
+  tput sgr0
+  echo "Useage:  sh cmscheck.v2 [flags] account"
+  echo " "
+  echo "Valid Flags; -w, -j, -d, -m, -a, -e, -wa, -ja, -da, -ma, -h"
+  echo "  -w or --wordpress for Wordpress"
+  echo "  -j or --joomla for Joomla"
+  echo "  -d or --drupal for Drupal"
+  echo "  -m for Magento"
+  echo " "
+  echo "  -wa for Wordpress on all accounts"
+  echo "  -ja for Joomla on all accounts"
+  echo "  -da for Drupal on all accounts"
+  echo "  -ma for Magento on all accounts"
+  echo " "
+  echo "  -a or --all for all valid CMS software for single account"
+  echo "  -e or --exhaustive for all valid CMS software for all accounts"
+  echo "  -h or --help for this help menu"
+}
+#No Input
+if [ $# -eq 0 ]
+  then
+  helptxt
+fi
+
+#Flags
+case "$1" in
+  -w) wordpress
+    ;;
+  --wordpress) wordpress
+    ;;
+  -j) joomla
+    ;;
+  --joomla) joomla
+    ;;
+  -d) drupal
+    ;;
+  --drupal) drupal
+    ;;
+  -wa) all4wp
+    ;;
+  -ja) all4j
+    ;;
+  -da) all4d
+    ;;
+  -a) all
+    ;;
+  --all) all
+    ;;
+  -e) exhaustive
+    ;;
+  --exhaustive) exhaustive
+    ;;
+  -h) helptxt
+    ;;
+  --help) helptxt
+    ;;
+  -m) magento
+    ;;
+  -ma) all4m
+esac
