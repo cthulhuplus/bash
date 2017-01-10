@@ -82,9 +82,10 @@ yum -y install owncloud
 #wget https://download.owncloud.org/community/owncloud-9.1.3.zip
 #unzip owncloud-9.1.3.zip
 #sleep 1
-mv /var/www/html/owncloud/* /var/www/html/owncloud/.* /var/www/html/
+#mv /var/www/html/owncloud/* /var/www/html/owncloud/.* /var/www/html/
 #mv owncloud /var/www
 #sed -i -e 's#DocumentRoot "/var/www/html"#DocumentRoot "/var/www/owncloud"#g' /etc/httpd/conf/httpd.conf
+cp -R /var/www/html/owncloud /var/www/html
 chown -R apache:apache /var/www/html
 
 systemctl restart httpd.service
