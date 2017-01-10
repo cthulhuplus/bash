@@ -85,7 +85,8 @@ yum -y install owncloud
 #mv /var/www/html/owncloud/* /var/www/html/owncloud/.* /var/www/html/
 #mv owncloud /var/www
 #sed -i -e 's#DocumentRoot "/var/www/html"#DocumentRoot "/var/www/owncloud"#g' /etc/httpd/conf/httpd.conf
-cp -R /var/www/html/owncloud /var/www/html
+cp -R /var/www/html/owncloud/.* /var/www/html/owncloud/* /var/www/html
+rm -rf /var/www/html/owncloud
 chown -R apache:apache /var/www/html
 
 systemctl restart httpd.service
