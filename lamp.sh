@@ -61,8 +61,6 @@ EOF
 systemctl restart httpd.service
 
 # Install OwnCloud
-#yum -y install unzip
-#yum -y install wget
 # Prepare PHP
 sed -i -e "s/upload_max_filesize = 2M/upload_max_filesize = 20M/g" /etc/php.ini
 
@@ -79,17 +77,16 @@ curl -L https://download.owncloud.org/download/repositories/stable/CentOS_7/ce:s
 yum clean expire-cache
 yum -y install owncloud
 
-#wget https://download.owncloud.org/community/owncloud-9.1.3.zip
-#unzip owncloud-9.1.3.zip
-#sleep 1
-#mv /var/www/html/owncloud/* /var/www/html/owncloud/.* /var/www/html/
-#mv owncloud /var/www
-#sed -i -e 's#DocumentRoot "/var/www/html"#DocumentRoot "/var/www/owncloud"#g' /etc/httpd/conf/httpd.conf
-#cp -Rp /var/www/html/owncloud/.* /var/www/html/owncloud/* /var/www/html
+cp -Rp /var/www/html/owncloud/.* /var/www/html/owncloud/* /var/www/html
 
-#rm -rf /var/www/html/owncloud
-#chown -R apache:apache /var/www/html
+rm -rf /var/www/html/owncloud
+chown -R apache:apache /var/www/html
 
-#sh fixperms.sh
+semanage fcontext -a -t httpd_sys_rw_content_t '/var/www/html/data'
+restorecon '/var/www/html/data'
+semanage fcontext -a -t httpd_sys_rw_content_t '/var/www/html/config'
+restorecon '/var/www/html/config'
+semanage fcontext -a -t httpd_sys_rw_content_t '/var/www/html/apps'
+restorecon '/var/www/html/apps'
 
 systemctl restart httpd.service
