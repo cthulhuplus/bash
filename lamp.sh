@@ -14,13 +14,13 @@ systemctl enable mariadb.service
 #Set Mysql root password
 mysqladmin -u root password NewPassword123
 #Delete anonymous MySQL users
-mysql -u root -p 'NewPassword123' -e "delete from mysql.user where User='';"
+mysql -u root -p'NewPassword123' -e "delete from mysql.user where User='';"
 #Disable remote MySQL access for root MySQL user
-mysql -u root -p 'NewPassword123' -e "delete from mysql.user where User='root' and host not in ('localhost', '127.0.0.1', '::1');"
+mysql -u root -p'NewPassword123' -e "delete from mysql.user where User='root' and host not in ('localhost', '127.0.0.1', '::1');"
 #Remove the test database
-mysql -u root -p 'NewPassword123' -e "drop database test;"
-mysql -u root -p 'NewPassword123' -e "delete from mysql.db where Db='test' or Db='test\_%';"
-mysql -u root -p 'NewPassword' -e "flush privileges;"
+mysql -u root -p'NewPassword123' -e "drop database test;"
+mysql -u root -p'NewPassword123' -e "delete from mysql.db where Db='test' or Db='test\_%';"
+mysql -u root -p'NewPassword123' -e "flush privileges;"
 
 #Install Apache
 yum -y install httpd
