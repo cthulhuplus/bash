@@ -43,4 +43,19 @@ chown httpd:httpdp /var/www/html/info.php
 #Install phpMyAdmin
 yum -y install phpmyadmin
 
-### phpMyAdmin Configuration needs to be added
+cat << EOF > /etc/httpd/conf.d/phpMyAdmin.conf
+Alias /phpMyAdmin /usr/share/phpMyAdmin
+Alias /phpmyadmin /usr/share/phpMyAdmin
+
+<Directory /usr/share/phpMyAdmin/>
+        Options none
+        AllowOverride Limit
+        Require all granted
+</Directory>
+EOF
+
+cat << EOF > /etc/phpMyAdmin/config.inc.php
+$cfg['Servers'][$i]['auth_type']     = 'http';    // Authentication method (config, http or cookie based)?
+EOF
+
+systemctl restart httpd.service
