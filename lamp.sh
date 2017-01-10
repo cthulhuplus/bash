@@ -22,7 +22,7 @@ mysql -u root -p'NewPassword123' -e "drop database test;"
 mysql -u root -p'NewPassword123' -e "delete from mysql.db where Db='test' or Db='test\_%';"
 mysql -u root -p'NewPassword123' -e "flush privileges;"
 
-#Install Apache
+# Install Apache
 yum -y install httpd
 systemctl start httpd.service
 systemctl enable httpd.service
@@ -31,7 +31,7 @@ firewall-cmd --permanent --zone=public --add-service=http
 firewall-cmd --permanent --zone=public --add-service=https
 firewall-cmd --reload
 
-#Install PHP
+# Install PHP
 yum -y install php
 
 systemctl restart httpd.service
@@ -40,7 +40,7 @@ touch /var/www/html/info.php
 echo "<?php phpinfo(); ?>" > /var/www/html/info.php
 chown httpd:httpdp /var/www/html/info.php
 
-#Install phpMyAdmin
+# Install phpMyAdmin
 yum -y install phpmyadmin
 
 cat << EOF > /etc/httpd/conf.d/phpMyAdmin.conf
@@ -59,3 +59,19 @@ $cfg['Servers'][$i]['auth_type']     = 'http';    // Authentication method (conf
 EOF
 
 systemctl restart httpd.service
+
+# Install OwnCloud
+# Prepare PHP
+sed -i -e "s/upload_max_filesize = 2M/upload_max_filesize = 20M/g" /etc/php.ini
+
+systemctl restart httpd.service
+
+# Create the database
+mysql -u root -p'NewPassword123' -e "create database ocdatabase;"
+mysql -u root -p'NewPassword123' -e "create user 'ocuser'@'localhost' identified by 'ocuserNewPassword123';"
+mysql -u root -p'NewPassword123' -e "grant all privileges on ocdatabase.* to 'ocuser'@'localhost';"
+mysql -u root -p'NewPassword123' -e "flush privileges;"
+
+curl -O https://download.owncloud.org/community/owncloud-9.0.0.zip
+unzip owncloud-9.0.0.zip
+mv owncloud /var/www/html/
