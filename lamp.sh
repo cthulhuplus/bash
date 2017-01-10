@@ -76,5 +76,9 @@ mysql -u root -p'NewPassword123' -e "flush privileges;"
 
 wget https://download.owncloud.org/community/owncloud-9.1.3.zip
 unzip owncloud-9.1.3.zip
-mv owncloud/* owncloud/.* /var/www/html/
-chown -R apache:apache /var/www/html/
+sleep 1
+#mv owncloud/* owncloud/.* /var/www/html/
+mv owncloud /var/www
+sed -i -e 's/DocumentRoot "/var/www/html"/DocumentRoot "/var/www/owncloud"/g/' /etc/httpd/conf/httpd.conf
+chown -R apache:apache /var/www/owncloud
+systemctl restart httpd.service
