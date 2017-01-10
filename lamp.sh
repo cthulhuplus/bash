@@ -58,6 +58,8 @@ cat << EOF > /etc/phpMyAdmin/config.inc.php
 $cfg['Servers'][$i]['auth_type']     = 'http';    // Authentication method (config, http or cookie based)?
 EOF
 
+sh fixperms.sh
+
 systemctl restart httpd.service
 
 # Install OwnCloud
@@ -87,6 +89,45 @@ yum -y install owncloud
 #sed -i -e 's#DocumentRoot "/var/www/html"#DocumentRoot "/var/www/owncloud"#g' /etc/httpd/conf/httpd.conf
 cp -R /var/www/html/owncloud/.* /var/www/html/owncloud/* /var/www/html
 rm -rf /var/www/html/owncloud
-chown -R apache:apache /var/www/html
+#chown -R apache:apache /var/www/html
 
+cat << EOF > fixperms.sh
+#!/bin/bash
+ocpath='/var/www/html'
+htuser='apache'
+htgroup='apache'
+rootuser='root'
+
+printf "Creating possible missing Directories\n"
+mkdir -p $ocpath/data
+mkdir -p $ocpath/assets
+mkdir -p $ocpath/updater
+
+printf "chmod Files and Directories\n"
+find ${ocpath}/ -type f -print0 | xargs -0 chmod 0640
+find ${ocpath}/ -type d -print0 | xargs -0 chmod 0750
+
+printf "chown Directories\n"
+chown -R ${rootuser}:${htgroup} ${ocpath}/
+chown -R ${htuser}:${htgroup} ${ocpath}/apps/
+chown -R ${htuser}:${htgroup} ${ocpath}/assets/
+chown -R ${htuser}:${htgroup} ${ocpath}/config/
+chown -R ${htuser}:${htgroup} ${ocpath}/data/
+chown -R ${htuser}:${htgroup} ${ocpath}/themes/
+chown -R ${htuser}:${htgroup} ${ocpath}/updater/
+
+chmod +x ${ocpath}/occ
+
+printf "chmod/chown .htaccess\n"
+if [ -f ${ocpath}/.htaccess ]
+ then
+  chmod 0644 ${ocpath}/.htaccess
+  chown ${rootuser}:${htgroup} ${ocpath}/.htaccess
+fi
+if [ -f ${ocpath}/data/.htaccess ]
+ then
+  chmod 0644 ${ocpath}/data/.htaccess
+  chown ${rootuser}:${htgroup} ${ocpath}/data/.htaccess
+fi
+EOF
 systemctl restart httpd.service
