@@ -58,8 +58,6 @@ cat << EOF > /etc/phpMyAdmin/config.inc.php
 $cfg['Servers'][$i]['auth_type']     = 'http';    // Authentication method (config, http or cookie based)?
 EOF
 
-sh fixperms.sh
-
 systemctl restart httpd.service
 
 # Install OwnCloud
@@ -130,4 +128,7 @@ if [ -f ${ocpath}/data/.htaccess ]
   chown ${rootuser}:${htgroup} ${ocpath}/data/.htaccess
 fi
 EOF
+
+sh fixperms.sh
+
 systemctl restart httpd.service
