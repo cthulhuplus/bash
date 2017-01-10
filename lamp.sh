@@ -61,7 +61,7 @@ EOF
 systemctl restart httpd.service
 
 # Install OwnCloud
-yum -y install unzip
+#yum -y install unzip
 #yum -y install wget
 # Prepare PHP
 sed -i -e "s/upload_max_filesize = 2M/upload_max_filesize = 20M/g" /etc/php.ini
@@ -85,10 +85,11 @@ yum -y install owncloud
 #mv /var/www/html/owncloud/* /var/www/html/owncloud/.* /var/www/html/
 #mv owncloud /var/www
 #sed -i -e 's#DocumentRoot "/var/www/html"#DocumentRoot "/var/www/owncloud"#g' /etc/httpd/conf/httpd.conf
-cp -R /var/www/html/owncloud/.* /var/www/html/owncloud/* /var/www/html
-rm -rf /var/www/html/owncloud
+#cp -Rp /var/www/html/owncloud/.* /var/www/html/owncloud/* /var/www/html
+
+#rm -rf /var/www/html/owncloud
 #chown -R apache:apache /var/www/html
 
-sh fixperms.sh
+#sh fixperms.sh
 
 systemctl restart httpd.service
