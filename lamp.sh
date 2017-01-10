@@ -74,11 +74,17 @@ mysql -u root -p'NewPassword123' -e "create user 'ocuser'@'localhost' identified
 mysql -u root -p'NewPassword123' -e "grant all privileges on ocdatabase.* to 'ocuser'@'localhost';"
 mysql -u root -p'NewPassword123' -e "flush privileges;"
 
-wget https://download.owncloud.org/community/owncloud-9.1.3.zip
-unzip owncloud-9.1.3.zip
-sleep 1
+rpm --import https://download.owncloud.org/download/repositories/stable/CentOS_7/repodata/repomd.xml.key
+curl -L https://download.owncloud.org/download/repositories/stable/CentOS_7/ce:stable.repo -o /etc/yum.repos.d/ownCloud.repo
+yum clean expire-cache
+yum -y install owncloud
+
+#wget https://download.owncloud.org/community/owncloud-9.1.3.zip
+#unzip owncloud-9.1.3.zip
+#sleep 1
 #mv owncloud/* owncloud/.* /var/www/html/
-mv owncloud /var/www
-sed -i -e 's#DocumentRoot "/var/www/html"#DocumentRoot "/var/www/owncloud"#g' /etc/httpd/conf/httpd.conf
-chown -R apache:apache /var/www/owncloud
+#mv owncloud /var/www
+#sed -i -e 's#DocumentRoot "/var/www/html"#DocumentRoot "/var/www/owncloud"#g' /etc/httpd/conf/httpd.conf
+#chown -R apache:apache /var/www/owncloud
+
 systemctl restart httpd.service
