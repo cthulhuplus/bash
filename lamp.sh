@@ -79,6 +79,6 @@ unzip owncloud-9.1.3.zip
 sleep 1
 #mv owncloud/* owncloud/.* /var/www/html/
 mv owncloud /var/www
-sed -i -e 's/DocumentRoot "/var/www/html"/DocumentRoot "/var/www/owncloud"/g/' /etc/httpd/conf/httpd.conf
+sed -i -e 's#DocumentRoot "/var/www/html"#DocumentRoot "/var/www/owncloud"#g' /etc/httpd/conf/httpd.conf
 chown -R apache:apache /var/www/owncloud
 systemctl restart httpd.service
