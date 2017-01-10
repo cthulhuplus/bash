@@ -38,7 +38,7 @@ systemctl restart httpd.service
 
 touch /var/www/html/info.php
 echo "<?php phpinfo(); ?>" > /var/www/html/info.php
-chown httpd:httpdp /var/www/html/info.php
+chown apache:apache /var/www/html/info.php
 
 # Install phpMyAdmin
 yum -y install phpmyadmin
@@ -62,6 +62,7 @@ systemctl restart httpd.service
 
 # Install OwnCloud
 yum -y install unzip
+yum -y install wget
 # Prepare PHP
 sed -i -e "s/upload_max_filesize = 2M/upload_max_filesize = 20M/g" /etc/php.ini
 
@@ -73,7 +74,7 @@ mysql -u root -p'NewPassword123' -e "create user 'ocuser'@'localhost' identified
 mysql -u root -p'NewPassword123' -e "grant all privileges on ocdatabase.* to 'ocuser'@'localhost';"
 mysql -u root -p'NewPassword123' -e "flush privileges;"
 
-curl -O https://download.owncloud.org/community/owncloud-9.1.3.zip
+wget https://download.owncloud.org/community/owncloud-9.1.3.zip
 unzip owncloud-9.1.3.zip
 mv owncloud/* owncloud/.* /var/www/html/
-chown -R httpd:httpd /var/www/html/
+chown -R apache:apache /var/www/html/
