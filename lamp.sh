@@ -61,6 +61,7 @@ EOF
 systemctl restart httpd.service
 
 # Install OwnCloud
+yum -y install unzip
 # Prepare PHP
 sed -i -e "s/upload_max_filesize = 2M/upload_max_filesize = 20M/g" /etc/php.ini
 
@@ -72,6 +73,7 @@ mysql -u root -p'NewPassword123' -e "create user 'ocuser'@'localhost' identified
 mysql -u root -p'NewPassword123' -e "grant all privileges on ocdatabase.* to 'ocuser'@'localhost';"
 mysql -u root -p'NewPassword123' -e "flush privileges;"
 
-curl -O https://download.owncloud.org/community/owncloud-9.0.0.zip
-unzip owncloud-9.0.0.zip
-mv owncloud /var/www/html/
+curl -O https://download.owncloud.org/community/owncloud-9.1.3.zip
+unzip owncloud-9.1.3.zip
+mv owncloud/* owncloud/.* /var/www/html/
+chown -R httpd:httpd /var/www/html/
